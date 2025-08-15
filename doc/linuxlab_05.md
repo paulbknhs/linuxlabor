@@ -36,7 +36,6 @@
 ```
 
 - In the Barman configuration file …
-
   - change the name of the config section and description in your copy;
   - change the host parameters to your DB server;
   - set the minimum number of backups to retain to 3
@@ -114,7 +113,7 @@
     - `restore_command = 'barman-wal-restore ll-admin-02.incus ll-db-02.incus %f %p' `
   - in the restore_command, configure that also partial WAL files are received
 - Start the barman backup job in the background if necessary: sudo -u barman barman cron (backup server)
-> !NOTE: Check pg_hba.conf file & check web doc
+  > !NOTE: Check pg_hba.conf file & check web doc
 - Create enough base backups to fulfill your configured minimum requirements by running
   barman backup <SERVER_NAME> as the Barman user three times
 - Use Barman check to see if everything works
@@ -151,6 +150,7 @@
 - Change the content of the file and create new ones over some time to get versioned
   backups (restic snapshots) with different content
 - List all snapshots stored in the repo
+
 ```
 gnuhealth@ll-app-02:~$ restic -r sftp:restic-backup@ll-admin-02.incus:/home/restic-backup/restic-repo --password-file ./.restic-pass snapshots
 repository d6183be2 opened (repository version 2) successfully, password is correct
@@ -165,7 +165,9 @@ b2b01199  2025-07-14 12:26:49  ll-app-02               /opt/gnuhealth
 5 snapshots
 
 ```
+
 - List all files in a specific snapshot
+
 ```
 gnuhealth@ll-app-02:~$ restic -r sftp:restic-backup@ll-admin-02.incus:/home/restic-backup/restic-repo --password-file ./.restic-pass ls 66378a78
   repository d6183be2 opened (repository version 2) successfully, password is correct
@@ -179,21 +181,25 @@ snapshot 66378a78 of [/opt/gnuhealth/var/lib] filtered by [] at 2025-07-14 12:35
 /opt/gnuhealth/var/lib/foo.txt
 /opt/gnuhealth/var/lib/will-it-back-up.txt
 ```
+
 - Check the structural consistency and integrity of your repo
 - Check the integrity of the actual data that you backed up
 - Move /opt/gnuhealth/var/lib to simulate data loss
 - Restore the last snapshot with restic
+
 ```
 gnuhealth@ll-app-02:~$ restic -r sftp:restic-backup@ll-admin-02.incus:/home/restic-backup/restic-repo --password-file ./.restic-pass --target / restore 66378a78
 repository d6183be2 opened (repository version 2) successfully, password is correct
 restoring <Snapshot 66378a78 of [/opt/gnuhealth/var/lib] at 2025-07-14 12:35:39.471193112 +0000 UTC by gnuhealth@ll-app-02> to /
 
 ```
+
 - Check if all the files with their latest content are restored
 - Create a new daily cronjob to remove older backup snapshots by using a policy with the
   following rules: - Keep all hourly snapshots during a day - Keep all daily snapshots during a week - Keep all weekly
   snapshots during a three week period - Keep all monthly snapshots for three months - Keep all yearly snapshots for two
   years
+
 ```
 0 1 * * * sudo -u gnuhealth restic -r sftp:restic-backup@ll-admin-02.incus:/home/restic-backup/restic-repo --password-file ./.restic-pass forget --prune --keep-hourly 24 --keep-daily 7 --keep-weekly 3 --keep-monthly 3 --keep-yearly 2
 ```
